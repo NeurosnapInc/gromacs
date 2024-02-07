@@ -1,0 +1,68 @@
+title       = Umbrella pulling simulation 
+; Run parameters
+integrator  = md
+dt          = 0.002
+tinit       = 0
+nsteps      = 500000    ; 500 ps
+nstcomm     = 10
+; Output parameters
+nstxout     = 5000      ; every 10 ps
+nstvout     = 5000 
+nstfout     = 500
+nstxtcout   = 500       ; every 1 ps
+nstenergy   = 500
+; Bond parameters
+constraint_algorithm    = lincs
+constraints             = all-bonds
+continuation            = yes       ; continuing from NPT 
+; Single-range cutoff scheme
+cutoff-scheme   = Verlet
+nstlist         = 20 
+ns_type         = grid 
+rlist           = 1.4
+rcoulomb        = 1.4
+rvdw            = 1.4
+; PME electrostatics parameters
+coulombtype     = PME
+fourierspacing  = 0.12
+fourier_nx      = 0
+fourier_ny      = 0
+fourier_nz      = 0
+pme_order       = 4
+ewald_rtol      = 1e-5
+optimize_fft    = yes
+; Berendsen temperature coupling is on in two groups
+Tcoupl      = Nose-Hoover
+tc_grps     = Protein   Non-Protein 
+tau_t       = 1.0       1.0
+ref_t       = 310       310
+; Pressure coupling is on
+Pcoupl          = Parrinello-Rahman 
+pcoupltype      = isotropic
+tau_p           = 1.0
+compressibility = 4.5e-5
+ref_p           = 1.0
+refcoord_scaling = com
+; Generate velocities is off
+gen_vel     = no 
+; Periodic boundary conditions are on in all directions
+pbc     = xyz
+; Long-range dispersion correction
+DispCorr    = EnerPres
+
+pull                     = yes
+pull-ngroups             = 2
+pull-group1-name         = Protein_chain1
+pull-group2-name         = Protein_chain2
+pull-ncoords             = 1
+pull-coord1-groups       = 1 2
+pull-coord1-geometry     = distance
+
+pull-coord1-type         = umbrella
+pull-coord1-k            = 5000.0
+pull-coord1-rate         = 0.0
+pull-coord1-init         = 0.834
+
+pull-group1-pbcatom      = 299
+pull-group2-pbcatom      = 1000
+

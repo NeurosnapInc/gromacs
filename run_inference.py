@@ -43,14 +43,15 @@ class ModelRunner:
                     if os.path.exists("../input.msa"):
                         protein_input = load_protein(str("../rf2aa_outputs/msa_A/uniref.a3m"), None, None, self)
                         protein_inputs[chain] = protein_input
-                    chains.append(chain)
-                    fasta_file_path = self.config.protein_inputs[chain]["fasta_file"]
-                    output_directory = os.path.join(self.config.get("output_directory", "../rf2aa_outputs"), f"msa_{chain}")
-                    os.makedirs(output_directory, exist_ok=True)
-                    seq = open(fasta_file_path, 'r').read().strip()
-                    run_mmseqs2(seq, output_directory, database="mmseqs2_uniref_env", use_filter=True, use_templates=False, pairing=None)
-                    protein_input = load_protein(str("../rf2aa_outputs/msa_A/uniref.a3m"), None, None, self)
-                    protein_inputs[chain] = protein_input
+                    else:
+                        chains.append(chain)
+                        fasta_file_path = self.config.protein_inputs[chain]["fasta_file"]
+                        output_directory = os.path.join(self.config.get("output_directory", "../rf2aa_outputs"), f"msa_{chain}")
+                        os.makedirs(output_directory, exist_ok=True)
+                        seq = open(fasta_file_path, 'r').read().strip()
+                        run_mmseqs2(seq, output_directory, database="mmseqs2_uniref_env", use_filter=True, use_templates=False, pairing=None)
+                        protein_input = load_protein(str("../rf2aa_outputs/msa_A/uniref.a3m"), None, None, self)
+                        protein_inputs[chain] = protein_input
         
         na_inputs = {}
         if self.config.na_inputs is not None:

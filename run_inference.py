@@ -40,7 +40,7 @@ class ModelRunner:
                 elif len(chain) > 1:
                     raise ValueError(f"Chain name must be a single character, found chain with name: {chain}")
                 else:
-                    if os.path.exists("../input.msa"):
+                    if os.path.exists("../input.a3m"):
                         protein_input = load_protein(str("../input.a3m"), None, None, self)
                         protein_inputs[chain] = protein_input
                     else:

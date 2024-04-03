@@ -40,6 +40,9 @@ class ModelRunner:
                 elif len(chain) > 1:
                     raise ValueError(f"Chain name must be a single character, found chain with name: {chain}")
                 else:
+                    if os.path.exists("../input.msa"):
+                        protein_input = load_protein(str("../rf2aa_outputs/msa_A/uniref.a3m"), None, None, self)
+                        protein_inputs[chain] = protein_input
                     chains.append(chain)
                     fasta_file_path = self.config.protein_inputs[chain]["fasta_file"]
                     output_directory = os.path.join(self.config.get("output_directory", "../rf2aa_outputs"), f"msa_{chain}")

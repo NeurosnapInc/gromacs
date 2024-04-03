@@ -41,7 +41,7 @@ class ModelRunner:
                     raise ValueError(f"Chain name must be a single character, found chain with name: {chain}")
                 else:
                     if os.path.exists("../input.msa"):
-                        protein_input = load_protein(str("../rf2aa_outputs/msa_A/uniref.a3m"), None, None, self)
+                        protein_input = load_protein(str("../input.a3m"), None, None, self)
                         protein_inputs[chain] = protein_input
                     else:
                         chains.append(chain)

@@ -50,7 +50,7 @@ class ModelRunner:
                         os.makedirs(output_directory, exist_ok=True)
                         seq = open(fasta_file_path, 'r').read().strip()
                         run_mmseqs2(seq, output_directory, database="mmseqs2_uniref_env", use_filter=True, use_templates=False, pairing=None)
-                        protein_input = load_protein(str("../rf2aa_outputs/msa_A/uniref.a3m"), None, None, self)
+                        protein_input = load_protein(f"../rf2aa_outputs/msa_{chain}/uniref.a3m", None, None, self)
                         protein_inputs[chain] = protein_input
         
         na_inputs = {}
@@ -145,7 +145,7 @@ class ModelRunner:
                  xyz_allatom, 
                  seq_unmasked, 
                  bond_feats=bond_feats,
-                 bfacts=plddts,
+                 bfacts=plddts.float()*100,
                  chain_Ls=Ls
                  )
         torch.save(err_dict, os.path.join(f"{self.config.output_path}", 

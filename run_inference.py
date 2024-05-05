@@ -3,11 +3,11 @@ import hydra
 import torch
 import torch.nn as nn
 from dataclasses import asdict
-from neurosnap.sequences.proteins import run_mmseqs2
+
 from rf2aa.data.merge_inputs import merge_all
 from rf2aa.data.covale import load_covalent_molecules
 from rf2aa.data.nucleic_acid import load_nucleic_acid
-from rf2aa.data.protein import generate_msa_and_load_protein, load_protein
+from rf2aa.data.protein import generate_msa_and_load_protein
 from rf2aa.data.small_molecule import load_small_molecule
 from rf2aa.ffindex import *
 from rf2aa.chemical import initialize_chemdata, load_pdb_ideal_sdf_strings
@@ -24,11 +24,13 @@ class ModelRunner:
         self.config = config
         initialize_chemdata(self.config.chem_params)
         FFindexDB = namedtuple("FFindexDB", "index, data")
-        self.ffdb = FFindexDB
+        self.ffdb = FFindexDB(read_index(config.database_params.hhdb+'_pdb.ffindex'),
+                              read_data(config.database_params.hhdb+'_pdb.ffdata'))
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.xyz_converter = XYZConverter()
         self.deterministic = config.get("deterministic", False)
         self.molecule_db = load_pdb_ideal_sdf_strings()
+
     def parse_inference_config(self):
         residues_to_atomize = [] # chain letter, residue number, residue name
         chains = []
@@ -40,18 +42,13 @@ class ModelRunner:
                 elif len(chain) > 1:
                     raise ValueError(f"Chain name must be a single character, found chain with name: {chain}")
                 else:
-                    if os.path.exists("../input.a3m"):
-                        protein_input = load_protein(str("../input.a3m"), None, None, self)
-                        protein_inputs[chain] = protein_input
-                    else:
-                        chains.append(chain)
-                        fasta_file_path = self.config.protein_inputs[chain]["fasta_file"]
-                        output_directory = os.path.join(self.config.get("output_directory", "../rf2aa_outputs"), f"msa_{chain}")
-                        os.makedirs(output_directory, exist_ok=True)
-                        seq = open(fasta_file_path, 'r').read().strip()
-                        run_mmseqs2(seq, output_directory, database="mmseqs2_uniref_env", use_filter=True, use_templates=False, pairing=None)
-                        protein_input = load_protein(f"../rf2aa_outputs/msa_{chain}/uniref.a3m", None, None, self)
-                        protein_inputs[chain] = protein_input
+                    chains.append(chain)
+                protein_input = generate_msa_and_load_protein(
+                    self.config.protein_inputs[chain]["fasta_file"],
+                    chain,
+                    self
+                ) 
+                protein_inputs[chain] = protein_input
         
         na_inputs = {}
         if self.config.na_inputs is not None:
@@ -145,7 +142,7 @@ class ModelRunner:
                  xyz_allatom, 
                  seq_unmasked, 
                  bond_feats=bond_feats,
-                 bfacts=plddts.float()*100,
+                 bfacts=plddts,
                  chain_Ls=Ls
                  )
         torch.save(err_dict, os.path.join(f"{self.config.output_path}", 

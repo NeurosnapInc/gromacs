@@ -55,7 +55,7 @@ def get_prot_sm_mask(atom_mask, seq):
     # n_protein = (~sm_mask).sum()
     #assert_that((n_protein/n_protein_with_backbone).item()).is_greater_than(0.8)
     mask_prot = has_backbone & ~sm_mask # valid protein/NA residues (L)
-    mask_ca_sm = atom_mask[...,1] & sm_mask # valid sm mol positions (L)
+    mask_ca_sm = (atom_mask[...,1].to(torch.int) & sm_mask.to(torch.int))
 
     mask = mask_prot | mask_ca_sm # valid positions
     return mask

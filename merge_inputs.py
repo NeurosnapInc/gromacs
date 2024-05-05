@@ -134,9 +134,55 @@ def merge_two_inputs(first_input, second_input):
         offset += L
 
     # merge templates
-    xyz_t = torch.cat([first_input.xyz_t, second_input.xyz_t],dim=1)
-    t1d = torch.cat([first_input.t1d, second_input.t1d],dim=1)
-    mask_t = torch.cat([first_input.mask_t, second_input.mask_t],dim=1)
+    # Determine which tensor is larger and pad the smaller one
+    size_diff = first_input.xyz_t.size(0) - second_input.xyz_t.size(0)
+    if size_diff > 0:
+        # Pad the second tensor to match the first tensor's size in dimension 0
+        padding = torch.zeros((size_diff,) + second_input.xyz_t.shape[1:], device=second_input.xyz_t.device)
+        second_input_padded = torch.cat([second_input.xyz_t, padding], dim=0)
+        xyz_t = torch.cat([first_input.xyz_t, second_input_padded], dim=1)
+    elif size_diff < 0:
+        # Pad the first tensor to match the second tensor's size in dimension 0
+        padding = torch.zeros((-size_diff,) + first_input.xyz_t.shape[1:], device=first_input.xyz_t.device)
+        first_input_padded = torch.cat([first_input.xyz_t, padding], dim=0)
+        xyz_t = torch.cat([first_input_padded, second_input.xyz_t], dim=1)
+    else:
+        # Directly concatenate if they are already compatible
+        xyz_t = torch.cat([first_input.xyz_t, second_input.xyz_t], dim=1)
+
+    # Determine the size difference between the two tensors in dimension 0
+    size_diff = first_input.t1d.size(0) - second_input.t1d.size(0)
+
+    if size_diff > 0:
+        # Pad the second tensor to match the first tensor's size in dimension 0
+        padding = torch.zeros((size_diff,) + second_input.t1d.shape[1:], device=second_input.t1d.device)
+        second_input_t1d_padded = torch.cat([second_input.t1d, padding], dim=0)
+        t1d = torch.cat([first_input.t1d, second_input_t1d_padded], dim=1)
+    elif size_diff < 0:
+        # Pad the first tensor to match the second tensor's size in dimension 0
+        padding = torch.zeros((-size_diff,) + first_input.t1d.shape[1:], device=first_input.t1d.device)
+        first_input_t1d_padded = torch.cat([first_input.t1d, padding], dim=0)
+        t1d = torch.cat([first_input_t1d_padded, second_input.t1d], dim=1)
+    else:
+        # Directly concatenate if they are already compatible
+        t1d = torch.cat([first_input.t1d, second_input.t1d], dim=1)
+
+    # Determine the size difference between the two tensors in dimension 0
+    size_diff = first_input.mask_t.size(0) - second_input.mask_t.size(0)
+
+    if size_diff > 0:
+        # Pad the second tensor to match the first tensor's size in dimension 0
+        padding = torch.zeros((size_diff,) + second_input.mask_t.shape[1:], device=second_input.mask_t.device)
+        second_input_mask_t_padded = torch.cat([second_input.mask_t, padding], dim=0)
+        mask_t = torch.cat([first_input.mask_t, second_input_mask_t_padded], dim=1)
+    elif size_diff < 0:
+        # Pad the first tensor to match the second tensor's size in dimension 0
+        padding = torch.zeros((-size_diff,) + first_input.mask_t.shape[1:], device=first_input.mask_t.device)
+        first_input_mask_t_padded = torch.cat([first_input.mask_t, padding], dim=0)
+        mask_t = torch.cat([first_input_mask_t_padded, second_input.mask_t], dim=1)
+    else:
+        # Directly concatenate if they are already compatible
+        mask_t = torch.cat([first_input.mask_t, second_input.mask_t], dim=1)
 
     # handle chirals (need to residue offset)
     if second_input.chirals.shape[0] > 0 :

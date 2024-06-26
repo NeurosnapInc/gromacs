@@ -50,10 +50,8 @@ class ModelRunner:
                         os.makedirs(output_directory, exist_ok=True)
                         seq = open(fasta_file_path, 'r').read().strip()
                         seq = seq.split('\n')[1]
-                        print(seq)
                         run_mmseqs2(seq, output_directory, database="mmseqs2_uniref_env", use_filter=True, use_templates=False, pairing=None)
                         protein_input = load_protein(str(f"../rf2aa_outputs/msa_{chain}/combined.a3m"), None, None, self)
-                        print(protein_input)
                         protein_inputs[chain] = protein_input
         
         na_inputs = {}
